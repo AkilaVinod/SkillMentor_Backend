@@ -47,8 +47,8 @@ public class Student implements Serializable {
     @Column(name = "updated_at")
     private Date updatedAt;
 
-//    @OneToMany(mappedBy = "student")
-//    private List<Session> sessions;
+    @OneToMany(mappedBy = "student")
+    private List<Session> sessions;
 
 }
 
