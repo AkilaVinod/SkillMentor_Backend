@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface SessionService {
 
-    Session createNewSession(SessionRequestDTO sessionDTO);
+    Session createNewSession(SessionRequestDTO sessionRequestDTO);
     List<Session> getAllSessions();
     Session getSessionById(Long id);
     Session updateSessionById(Long id, SessionRequestDTO updatedSessionDTO);
