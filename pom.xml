@@ -108,7 +108,6 @@
             <artifactId>jwks-rsa</artifactId>
             <version>0.22.1</version>
         </dependency>
-
         <!-- Jackson for JSON processing -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

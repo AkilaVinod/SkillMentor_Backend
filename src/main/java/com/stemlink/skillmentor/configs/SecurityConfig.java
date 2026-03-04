@@ -1,7 +1,7 @@
 package com.stemlink.skillmentor.configs;
 
-//import com.stemlink.skillmentor.security.JwtAuthenticationFilter;
 import com.stemlink.skillmentor.security.AuthenticationFilter;
+import com.stemlink.skillmentor.security.SkillMentorAccessDeniedHandler;
 import com.stemlink.skillmentor.security.SkillMentorAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -22,26 +22,30 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity   // ← enables @PreAuthorize on controllers
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final AuthenticationFilter clerkAuthenticationFilter;
     private final SkillMentorAuthenticationEntryPoint skillMentorAuthenticationEntryPoint;
+    private final SkillMentorAccessDeniedHandler skillMentorAccessDeniedHandler; // ← NEW
     private final CorsConfigurationSource corsConfigurationSource;
-
-    //TODO: handle unauthorized error 403
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(skillMentorAuthenticationEntryPoint)
+                        .authenticationEntryPoint(skillMentorAuthenticationEntryPoint)  // 401 handler
+                        .accessDeniedHandler(skillMentorAccessDeniedHandler)            // 403 handler
                 )
                 .authorizeHttpRequests(auth -> auth
+
+                        // ── Public routes ─────────────────────────────────────────
                         .requestMatchers(
                                 "/api/public/**",
                                 "/v3/api-docs/**",
@@ -51,8 +55,23 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/swagger-resources/**"
                         ).permitAll()
-                        // Public read access to mentors from home page
+
+                        // ── Public read: Mentors ───────────────────────────────────
                         .requestMatchers(HttpMethod.GET, "/api/v1/mentors", "/api/v1/mentors/*").permitAll()
+
+                        // ── Role-based routes ─────────────────────────────────────
+                        // Only ADMIN can manage users
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+
+                        // MENTOR or ADMIN can access mentor management
+                        .requestMatchers(HttpMethod.POST, "/api/v1/mentors").hasAnyRole("ADMIN", "MENTOR")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/mentors/**").hasAnyRole("ADMIN", "MENTOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/mentors/**").hasRole("ADMIN")
+
+                        // STUDENT or ADMIN can access student routes
+                        .requestMatchers("/api/v1/students/**").hasAnyRole("ADMIN", "STUDENT")
+
+                        // Everything else just needs to be authenticated
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(clerkAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -71,4 +90,3 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-

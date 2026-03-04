@@ -18,8 +18,7 @@ public class AbstractController {
         return ResponseEntity.notFound().build();
     }
 
-    protected <T> ResponseEntity<T> sendNoContentResponse() {
+    protected ResponseEntity<Void> sendNoContentResponse() {
         return ResponseEntity.noContent().build();
     }
-
 }
