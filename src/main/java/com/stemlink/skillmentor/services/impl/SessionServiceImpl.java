@@ -10,7 +10,9 @@ import com.stemlink.skillmentor.entities.Session;
 import com.stemlink.skillmentor.entities.Student;
 import com.stemlink.skillmentor.entities.Subject;
 import com.stemlink.skillmentor.exceptions.SkillMentorException;
+import com.stemlink.skillmentor.security.UserPrincipal;
 import com.stemlink.skillmentor.services.SessionService;
+import com.stemlink.skillmentor.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -41,6 +43,11 @@ public class SessionServiceImpl implements SessionService {
             Subject subject = subjectRepository.findById(sessionRequestDTO.getSubjectId()).orElseThrow(
                     () -> new SkillMentorException("Subject not found", HttpStatus.NOT_FOUND)
             );
+
+            // Checking availability
+            ValidationUtils.validateMentorAvailability(mentor, sessionRequestDTO.getSessionAt(), sessionRequestDTO.getDurationMinutes());
+            ValidationUtils.validateStudentAvailability(student, sessionRequestDTO.getSessionAt(), sessionRequestDTO.getDurationMinutes());
+
 
             Session session = modelMapper.map(sessionRequestDTO , Session.class);
             session.setStudent(student);
@@ -77,7 +84,8 @@ public class SessionServiceImpl implements SessionService {
 
         // Update the related entities
         if (updatedSessionDTO.getStudentId() != null) {
-            Student student = studentRepository.findById(updatedSessionDTO.getStudentId()).get();
+            Student student = studentRepository.findById(updatedSessionDTO.getStudentId())
+                    .orElseThrow(() -> new SkillMentorException("Student not found", HttpStatus.NOT_FOUND));
             session.setStudent(student);
         }
         if (updatedSessionDTO.getMentorId() != null) {
@@ -86,18 +94,47 @@ public class SessionServiceImpl implements SessionService {
             session.setMentor(mentor);
         }
         if (updatedSessionDTO.getSubjectId() != null) {
-            Subject subject = subjectRepository.findById(updatedSessionDTO.getSubjectId()).get();
+            Subject subject = subjectRepository.findById(updatedSessionDTO.getSubjectId())
+                    .orElseThrow(() -> new SkillMentorException("Subject not found", HttpStatus.NOT_FOUND));
             session.setSubject(subject);
         }
         return sessionRepository.save(session);
     }
 
     public void deleteSession(Long id) {
-        Session session = sessionRepository.findById(id)
-                .orElseThrow(() ->
+        Session session = sessionRepository.findById(id).orElseThrow(() ->
                         new SkillMentorException("Session not found", HttpStatus.NOT_FOUND)
                 );
         sessionRepository.delete(session);
+    }
+
+    public Session enrollSession(UserPrincipal userPrincipal, SessionRequestDTO sessionRequestDTO){
+        // Find student by email from JWT, or auto-create user on first enrollment
+        Student student = studentRepository.findByEmail(userPrincipal.getEmail())
+                .orElseGet(() -> {
+                    Student s = new Student();
+                    s.setStudentId(userPrincipal.getId());
+                    s.setEmail(userPrincipal.getEmail());
+                    s.setFirstName(userPrincipal.getFirstName());
+                    s.setLastName(userPrincipal.getLastName());
+                    return studentRepository.save(s);
+                });
+
+        Mentor mentor = mentorRepository.findByMentorId(String.valueOf(sessionRequestDTO.getMentorId()))
+                .orElseThrow(() -> new RuntimeException("Mentor not found with mentorId: " + sessionRequestDTO.getMentorId()));
+        Subject subject = subjectRepository.findById(sessionRequestDTO.getSubjectId())
+                .orElseThrow(() -> new RuntimeException("Subject not found with id: " + sessionRequestDTO.getSubjectId()));
+
+        Session session = new Session();
+        session.setStudent(student);
+        session.setMentor(mentor);
+        session.setSubject(subject);
+        session.setSessionAt(sessionRequestDTO.getSessionAt());
+        session.setDurationMinutes(sessionRequestDTO.getDurationMinutes() != null ? sessionRequestDTO.getDurationMinutes() : 60);
+        session.setSessionStatus("scheduled");
+        session.setPaymentStatus("pending");
+
+        return sessionRepository.save(session);
     }
 
     public List<Session> getSessionsByStudentEmail(String email){
