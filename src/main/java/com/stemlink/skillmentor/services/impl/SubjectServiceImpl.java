@@ -33,14 +33,20 @@ public class SubjectServiceImpl implements SubjectService {
         }
     }
 
-    public Subject addNewSubject (Long mentorId, Subject subject){
+    public List<Subject> getSubjectsByMentor(String mentorId) {
+        return subjectRepository.findByMentor_MentorId(mentorId);
+    }
+
+    public Subject addNewSubject(String mentorId, Subject subject){
         try{
-            Mentor mentor = mentorRepository.findByMentorId(String.valueOf(mentorId)).orElseThrow(
-                    () -> new SkillMentorException("Mentor not found",HttpStatus.NOT_FOUND)
-            );
+            Mentor mentor = mentorRepository.findByMentorId(mentorId)
+                    .orElseThrow(() -> new SkillMentorException("Mentor not found", HttpStatus.NOT_FOUND));
+
             subject.setMentor(mentor);
+
             return subjectRepository.save(subject);
-        }catch (SkillMentorException e) {
+
+        } catch (SkillMentorException e) {
             throw e;
         } catch (DataIntegrityViolationException e) {
             log.error("Data integrity violation while adding subject: {}", e.getMessage());

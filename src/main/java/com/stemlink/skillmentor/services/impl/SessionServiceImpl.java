@@ -4,6 +4,8 @@ import com.stemlink.skillmentor.Repositories.MentorRepository;
 import com.stemlink.skillmentor.Repositories.SessionRepository;
 import com.stemlink.skillmentor.Repositories.StudentRepository;
 import com.stemlink.skillmentor.Repositories.SubjectRepository;
+import com.stemlink.skillmentor.constants.PaymentStatus;
+import com.stemlink.skillmentor.constants.SessionStatus;
 import com.stemlink.skillmentor.dto.request.SessionRequestDTO;
 import com.stemlink.skillmentor.entities.Mentor;
 import com.stemlink.skillmentor.entities.Session;
@@ -131,8 +133,8 @@ public class SessionServiceImpl implements SessionService {
         session.setSubject(subject);
         session.setSessionAt(sessionRequestDTO.getSessionAt());
         session.setDurationMinutes(sessionRequestDTO.getDurationMinutes() != null ? sessionRequestDTO.getDurationMinutes() : 60);
-        session.setSessionStatus("scheduled");
-        session.setPaymentStatus("pending");
+        session.setSessionStatus(SessionStatus.CONFIRMED);
+        session.setPaymentStatus(PaymentStatus.PENDING);
 
         return sessionRepository.save(session);
     }

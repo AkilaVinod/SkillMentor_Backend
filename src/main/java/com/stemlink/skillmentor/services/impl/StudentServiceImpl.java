@@ -43,7 +43,7 @@ public class StudentServiceImpl implements StudentService {
         }
     }
 
-    public Student getStudentById(Integer id) {
+    public Student getStudentById(Long id) {
         return studentRepository.findById(id).orElseThrow(
                 () -> new SkillMentorException("Student not found", HttpStatus.NOT_FOUND)
         );
@@ -55,7 +55,7 @@ public class StudentServiceImpl implements StudentService {
         );
     }
 
-    public Student updateStudentById(Integer id, Student updatedStudent) {
+    public Student updateStudentById(Long id, Student updatedStudent) {
         try {
             Student student = studentRepository.findById(id).orElseThrow(
                     () -> new SkillMentorException("Student not found", HttpStatus.NOT_FOUND)
@@ -70,7 +70,7 @@ public class StudentServiceImpl implements StudentService {
         }
     }
 
-    public void deleteStudent(Integer id) {
+    public void deleteStudent(Long id) {
         try {
             studentRepository.deleteById(id);
         } catch (Exception exception) {

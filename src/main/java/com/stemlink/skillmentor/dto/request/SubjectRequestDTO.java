@@ -16,5 +16,5 @@ public class SubjectRequestDTO {
     private String courseImageUrl;
 
     @NotNull
-    private Long mentorId;
+    private String mentorId;
 }

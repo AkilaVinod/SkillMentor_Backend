@@ -6,13 +6,14 @@ import java.util.Date;
 
 @Data
 public class SessionResponseDTO {
-    private Integer id;
+    private Long id;
 
     private Integer studentId;
     private String studentName;
 
     private Long mentorId;
     private String mentorName;
+    private String mentorProfileImageUrl;
 
     private Long subjectId;
     private String subjectName;
@@ -31,4 +32,5 @@ public class SessionResponseDTO {
 
     private Date createdAt;
     private Date updatedAt;
+
 }

@@ -12,7 +12,7 @@ public class SubjectResponseDTO {
     private String description;
     private String courseImageUrl;
 
-    private Long mentorId;
+    private String mentorId;
     private String mentorName;   // combine first + last
 
     private Date createdAt;

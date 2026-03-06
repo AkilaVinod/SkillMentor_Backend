@@ -1,6 +1,8 @@
 package com.stemlink.skillmentor.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.stemlink.skillmentor.constants.PaymentStatus;
+import com.stemlink.skillmentor.constants.SessionStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -45,8 +47,8 @@ public class Session implements Serializable {
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
 
-    @Column(name = "session_status", length = 50)
-    private String sessionStatus;
+    @Enumerated(EnumType.STRING)
+    private SessionStatus sessionStatus;
 
     @Column(name = "meeting_link")
     private String meetingLink;
@@ -54,14 +56,8 @@ public class Session implements Serializable {
     @Column(name = "session_notes", columnDefinition = "TEXT")
     private String sessionNotes;
 
-    @Column(name = "student_review", columnDefinition = "TEXT")
-    private String studentReview;
-
-    @Column(name = "student_rating")
-    private Integer studentRating;
-
-    @Column(name = "payment_status", length = 20)
-    private String paymentStatus;
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

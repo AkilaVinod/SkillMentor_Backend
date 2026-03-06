@@ -43,7 +43,7 @@ public class StudentController extends AbstractController{
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<StudentResponseDTO> getStudentById(@PathVariable Integer id) {
+    public ResponseEntity<StudentResponseDTO> getStudentById(@PathVariable Long id) {
 
         Student student = studentService.getStudentById(id);
 
@@ -91,7 +91,7 @@ public class StudentController extends AbstractController{
     @PutMapping("{id}")
     @PreAuthorize("hasAnyRole('" + ROLE_ADMIN + "', '" + ROLE_STUDENT + "')")
     public ResponseEntity<StudentResponseDTO> updateStudent(
-            @PathVariable Integer id,
+            @PathVariable Long id,
             @Valid @RequestBody StudentRequestDTO updatedStudentDTO,
             Authentication authentication) {
 
@@ -116,7 +116,7 @@ public class StudentController extends AbstractController{
 
     @DeleteMapping("{id}")
     @PreAuthorize("hasAnyRole('" + ROLE_ADMIN + "')")
-    public ResponseEntity<Void> deleteStudent(@PathVariable Integer id) {
+        public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
         studentService.deleteStudent(id);
         return sendNoContentResponse();
     }
