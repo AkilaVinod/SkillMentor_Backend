@@ -1,5 +1,6 @@
 package com.stemlink.skillmentor.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,7 +25,7 @@ public class Student implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "student_id", length = 100, nullable = false)
+    @Column(name = "student_id", unique = true, nullable = false)
     private String studentId;
 
     @Column(length = 100, unique = true, nullable = false)
@@ -47,6 +48,7 @@ public class Student implements Serializable {
     @Column(name = "updated_at")
     private Date updatedAt;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "student")
     private List<Session> sessions;
 

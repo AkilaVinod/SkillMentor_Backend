@@ -49,6 +49,12 @@ public class StudentServiceImpl implements StudentService {
         );
     }
 
+    public Student getStudentByStudentId(String studentId) {
+        return studentRepository.findByStudentId(studentId).orElseThrow(
+                () -> new SkillMentorException("Student not found", HttpStatus.NOT_FOUND)
+        );
+    }
+
     public Student updateStudentById(Integer id, Student updatedStudent) {
         try {
             Student student = studentRepository.findById(id).orElseThrow(

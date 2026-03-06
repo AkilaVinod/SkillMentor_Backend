@@ -8,21 +8,7 @@ import lombok.Data;
 @Data
 public class StudentRequestDTO {
 
-    @NotNull(message = "Student ID is required")
-    private String studentId;
+        @Size(max = 1000, message = "Learning goals too long")
+        private String learningGoals;
 
-    @NotNull(message = "Email is required")
-    @Email(message = "Email must be valid")
-    private String email;
-
-    @NotNull(message = "First name is required")
-    @Size(max = 50, message = "First name cannot exceed 50 characters")
-    private String firstName;
-
-    @NotNull(message = "Last name is required")
-    @Size(max = 50, message = "Last name cannot exceed 50 characters")
-    private String lastName;
-
-    @Size(max = 1000, message = "Learning goals too long")
-    private String learningGoals;
 }
