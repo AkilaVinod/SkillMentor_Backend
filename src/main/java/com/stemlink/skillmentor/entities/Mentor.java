@@ -59,8 +59,11 @@ public class Mentor implements Serializable {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
-    @Column(name = "positive_reviews")
-    private Integer positiveReviews;
+    @Column(name = "average_rating")
+    private Double averageRating;
+
+    @Column(name = "total_reviews")
+    private Integer totalReviews;
 
     @Column(name = "total_enrollments")
     private Integer totalEnrollments;

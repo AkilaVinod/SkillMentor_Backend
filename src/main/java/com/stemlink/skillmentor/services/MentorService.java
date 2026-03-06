@@ -11,5 +11,6 @@ public interface MentorService {
     Mentor getMentorById(Long id);
     Mentor updateMentorById(Long id, Mentor updatedMentor);
     void deleteMentor(Long id);
+    Mentor getMentorByMentorId(String mentorId);
 }
 

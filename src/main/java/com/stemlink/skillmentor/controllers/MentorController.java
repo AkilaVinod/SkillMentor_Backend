@@ -52,6 +52,18 @@ public class MentorController extends AbstractController {
         return sendOkResponse(dto);
     }
 
+    @GetMapping("/profile/{mentorId}")
+    public ResponseEntity<MentorResponseDTO> getMentorByMentorId(
+            @PathVariable String mentorId) {
+
+        Mentor mentor = mentorService.getMentorByMentorId(mentorId);
+
+        MentorResponseDTO dto =
+                modelMapper.map(mentor, MentorResponseDTO.class);
+
+        return sendOkResponse(dto);
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('" + ROLE_ADMIN + "', '" + ROLE_MENTOR + "')")
     public ResponseEntity<MentorResponseDTO> createMentor(@Valid @RequestBody MentorRequestDTO mentorRequestDTO, Authentication authentication) {
@@ -86,19 +98,20 @@ public class MentorController extends AbstractController {
 
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
+        Mentor existingMentor = mentorService.getMentorById(id);
+
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-        // If user is MENTOR, ensure they are updating only themselves
-        if (!isAdmin && !userPrincipal.getId().equals(id)) {
+        if (!isAdmin && !existingMentor.getMentorId().equals(userPrincipal.getId())) {
             throw new AccessDeniedException("You are not allowed to update this mentor");
         }
 
         Mentor mentor = modelMapper.map(updatedMentorDTO, Mentor.class);
+
         Mentor updatedMentor = mentorService.updateMentorById(id, mentor);
 
-        MentorResponseDTO responseDTO =
-                modelMapper.map(updatedMentor, MentorResponseDTO.class);
+        MentorResponseDTO responseDTO = modelMapper.map(updatedMentor, MentorResponseDTO.class);
 
         return sendOkResponse(responseDTO);
     }

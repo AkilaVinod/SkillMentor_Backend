@@ -75,6 +75,12 @@ public class MentorServiceImpl implements MentorService {
     }
 
 
+    public Mentor getMentorByMentorId(String mentorId) {
+        return mentorRepository.findByMentorId(mentorId).orElseThrow(() ->
+                        new SkillMentorException("Mentor not found", HttpStatus.NOT_FOUND));
+    }
+
+
     public Mentor updateMentorById(Long id, Mentor updatedMentor) {
         try {
             Mentor mentor = mentorRepository.findById(id).orElseThrow(
