@@ -25,8 +25,9 @@ public class SessionController extends AbstractController {
 
     private final SessionService sessionService;
 
-    // Get all sessions
+    // Admin only
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<SessionResponseDTO>> getAllSessions() {
 
         List<Session> sessions = sessionService.getAllSessions();
@@ -38,8 +39,9 @@ public class SessionController extends AbstractController {
         return sendOkResponse(response);
     }
 
-    // Get session by id
+    // Admin or Mentor
     @GetMapping("{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MENTOR')")
     public ResponseEntity<SessionResponseDTO> getSessionById(@PathVariable Long id) {
 
         Session session = sessionService.getSessionById(id);
@@ -47,8 +49,9 @@ public class SessionController extends AbstractController {
         return sendOkResponse(toSessionResponseDTO(session));
     }
 
-    // Create session (mentor)
+    // Admin creates sessions manually
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SessionResponseDTO> createSession(
             @Valid @RequestBody SessionRequestDTO sessionDTO) {
 
@@ -57,8 +60,9 @@ public class SessionController extends AbstractController {
         return sendCreatedResponse(toSessionResponseDTO(session));
     }
 
-    // Update session
+    // Admin updates sessions
     @PutMapping("{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SessionResponseDTO> updateSession(
             @PathVariable Long id,
             @Valid @RequestBody SessionRequestDTO updatedSessionDTO) {
@@ -68,8 +72,9 @@ public class SessionController extends AbstractController {
         return sendOkResponse(toSessionResponseDTO(session));
     }
 
-    // Delete session
+    // Admin delete
     @DeleteMapping("{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteSession(@PathVariable Long id) {
 
         sessionService.deleteSession(id);
@@ -79,6 +84,7 @@ public class SessionController extends AbstractController {
 
     // Student enroll to a session
     @PostMapping("/enroll")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<SessionResponseDTO> enroll(
             @RequestBody SessionRequestDTO sessionDTO,
             Authentication authentication) {
@@ -90,8 +96,9 @@ public class SessionController extends AbstractController {
         return sendCreatedResponse(toSessionResponseDTO(session));
     }
 
-    // Get logged student's sessions
+    // Logged student sessions
     @GetMapping("/my-sessions")
+    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<List<SessionResponseDTO>> getMySessions(Authentication authentication) {
 
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
@@ -109,22 +116,22 @@ public class SessionController extends AbstractController {
     // Mapper
     private SessionResponseDTO toSessionResponseDTO(Session session) {
 
-        SessionResponseDTO dto = new SessionResponseDTO();
+        SessionResponseDTO sessionResponseDTO = new SessionResponseDTO();
 
-        dto.setId(session.getId());
-        dto.setMentorName(session.getMentor().getFirstName() + " " +
+        sessionResponseDTO.setId(session.getId());
+        sessionResponseDTO.setMentorName(session.getMentor().getFirstName() + " " +
                 session.getMentor().getLastName());
 
-        dto.setMentorProfileImageUrl(session.getMentor().getProfileImageUrl());
-        dto.setSubjectName(session.getSubject().getSubjectName());
-        dto.setSessionAt(session.getSessionAt());
-        dto.setDurationMinutes(session.getDurationMinutes());
+        sessionResponseDTO.setMentorProfileImageUrl(session.getMentor().getProfileImageUrl());
+        sessionResponseDTO.setSubjectName(session.getSubject().getSubjectName());
+        sessionResponseDTO.setSessionAt(session.getSessionAt());
+        sessionResponseDTO.setDurationMinutes(session.getDurationMinutes());
 
-        dto.setSessionStatus(session.getSessionStatus().name());
-        dto.setPaymentStatus(session.getPaymentStatus().name());
+        sessionResponseDTO.setSessionStatus(session.getSessionStatus().name());
+        sessionResponseDTO.setPaymentStatus(session.getPaymentStatus().name());
 
-        dto.setMeetingLink(session.getMeetingLink());
+        sessionResponseDTO.setMeetingLink(session.getMeetingLink());
 
-        return dto;
+        return sessionResponseDTO;
     }
 }

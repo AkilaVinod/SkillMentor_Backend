@@ -58,8 +58,7 @@ public class MentorController extends AbstractController {
 
         Mentor mentor = mentorService.getMentorByMentorId(mentorId);
 
-        MentorResponseDTO dto =
-                modelMapper.map(mentor, MentorResponseDTO.class);
+        MentorResponseDTO dto = modelMapper.map(mentor, MentorResponseDTO.class);
 
         return sendOkResponse(dto);
     }
