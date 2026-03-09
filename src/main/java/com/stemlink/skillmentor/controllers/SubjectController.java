@@ -7,6 +7,8 @@ import com.stemlink.skillmentor.services.SubjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,14 +25,17 @@ public class SubjectController extends AbstractController {
     private final SubjectService subjectService;
 
     @GetMapping
-    public ResponseEntity<List<SubjectResponseDTO>> getAllSubjects() {
-        List<Subject> subjects = subjectService.getAllSubjects();
-        List<SubjectResponseDTO> response = subjects.stream().map(subject -> {
-            SubjectResponseDTO subjectResponseDTO = modelMapper.map(subject, SubjectResponseDTO.class);
-            subjectResponseDTO.setMentorId(subject.getMentor().getMentorId());
-            subjectResponseDTO.setMentorName(subject.getMentor().getFirstName() + " " + subject.getMentor().getLastName());
-            return subjectResponseDTO;
-        }).toList();
+    public ResponseEntity<Page<SubjectResponseDTO>> getAllSubjects(Pageable pageable) {
+
+        Page<Subject> subjects = subjectService.getAllSubjects(pageable);
+
+        Page<SubjectResponseDTO> response = subjects.map(subject -> {
+            SubjectResponseDTO dto = modelMapper.map(subject, SubjectResponseDTO.class);
+            dto.setMentorId(subject.getMentor().getMentorId());
+            dto.setMentorName(subject.getMentor().getFirstName() + " " + subject.getMentor().getLastName());
+            return dto;
+        });
+
         return sendOkResponse(response);
     }
 

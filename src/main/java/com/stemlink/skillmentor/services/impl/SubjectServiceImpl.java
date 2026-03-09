@@ -9,11 +9,15 @@ import com.stemlink.skillmentor.services.SubjectService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -24,21 +28,29 @@ public class SubjectServiceImpl implements SubjectService {
     private final MentorRepository mentorRepository;
     private final ModelMapper modelMapper;
 
-    public List<Subject> getAllSubjects() {
+    @Override
+    @Cacheable(value = "subjects", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    public Page<Subject> getAllSubjects(Pageable pageable) {
         try {
-            return subjectRepository.findAll();
+            log.info("Fetching subjects page {} from DB", pageable.getPageNumber());
+            return subjectRepository.findAll(pageable);
         } catch (Exception exception) {
-            log.error("Failed to get all subjects",exception);
+            log.error("Failed to get all subjects", exception);
             throw new SkillMentorException("Failed to get all subjects", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    @Override
+    @Cacheable(value = "subjectsByMentor", key = "#mentorId")
     public List<Subject> getSubjectsByMentor(String mentorId) {
+        log.info("Fetching subjects for mentor {} from DB", mentorId);
         return subjectRepository.findByMentor_MentorId(mentorId);
     }
 
-    public Subject addNewSubject(String mentorId, Subject subject){
-        try{
+    @Override
+    @CacheEvict(value = {"subjects", "subjectsByMentor"}, allEntries = true)
+    public Subject addNewSubject(String mentorId, Subject subject) {
+        try {
             Mentor mentor = mentorRepository.findByMentorId(mentorId)
                     .orElseThrow(() -> new SkillMentorException("Mentor not found", HttpStatus.NOT_FOUND));
 
@@ -57,19 +69,27 @@ public class SubjectServiceImpl implements SubjectService {
         }
     }
 
-    public Subject getSubjectById(Long id){
+    @Override
+    @Cacheable(value = "subject", key = "#id")
+    public Subject getSubjectById(Long id) {
+        log.info("Fetching subject {} from DB", id);
         return subjectRepository.findById(id).orElseThrow(
                 () -> new SkillMentorException("Subject not found", HttpStatus.NOT_FOUND)
         );
     }
 
-    public Subject updateSubjectById(Long id, Subject updatedSubject){
+    @Override
+    @CacheEvict(value = {"subjects", "subjectsByMentor", "subject"}, allEntries = true)
+    public Subject updateSubjectById(Long id, Subject updatedSubject) {
         try {
             Subject subject = subjectRepository.findById(id).orElseThrow(
                     () -> new SkillMentorException("Subject not found", HttpStatus.NOT_FOUND)
             );
+
             modelMapper.map(updatedSubject, subject);
+
             return subjectRepository.save(subject);
+
         } catch (SkillMentorException e) {
             throw e;
         } catch (DataIntegrityViolationException e) {
@@ -81,15 +101,18 @@ public class SubjectServiceImpl implements SubjectService {
         }
     }
 
-    public void deleteSubject(Long id){
+    @Override
+    @CacheEvict(value = {"subjects", "subjectsByMentor", "subject"}, allEntries = true)
+    public void deleteSubject(Long id) {
         try {
             Subject subject = subjectRepository.findById(id).orElseThrow(
                     () -> new SkillMentorException("Subject not found", HttpStatus.NOT_FOUND));
+
             subjectRepository.delete(subject);
+
         } catch (Exception exception) {
             log.error("Failed to delete subject with id {}", id, exception);
             throw new SkillMentorException("Failed to delete subject", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
-

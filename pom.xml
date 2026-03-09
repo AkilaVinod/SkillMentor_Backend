@@ -114,6 +114,18 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- Spring Cache Starter for Caching -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!-- Redis for distributed caching -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
 	</dependencies>
 
 	<build>

@@ -15,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,7 +23,7 @@ public class MentorServiceImpl implements MentorService {
     private final MentorRepository mentorRepository;
     private final ModelMapper modelMapper;
 
-
+    @CacheEvict(value = {"mentors", "mentor"}, allEntries = true)
     public Mentor createNewMentor(Mentor mentor) {
         try {
             return mentorRepository.save(mentor);
@@ -37,75 +36,87 @@ public class MentorServiceImpl implements MentorService {
         }
     }
 
-
+    @Cacheable(value = "mentors", key = "#name + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<Mentor> getAllMentors(String name, Pageable pageable) {
         try {
-            log.debug("getting mentors with name: {}", name);
+            log.debug("Fetching mentors from DB with name: {}", name);
+
             if (name != null && !name.isEmpty()) {
                 return mentorRepository.findByName(name, pageable);
             }
-            return mentorRepository.findAll(pageable); // SELECT * FROM mentor
+
+            return mentorRepository.findAll(pageable);
+
         } catch (Exception exception) {
             log.error("Failed to get all mentors", exception);
             throw new SkillMentorException("Failed to get all mentors", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
-
+    @Cacheable(value = "mentor", key = "#id")
     public Mentor getMentorById(Long id) {
         try {
 
             Mentor mentor = mentorRepository.findById(id).orElseThrow(
                     () -> new SkillMentorException("Mentor Not found", HttpStatus.NOT_FOUND)
             );
+
             log.info("Successfully fetched mentor {}", id);
             return mentor;
+
         } catch (SkillMentorException skillMentorException) {
-            //System.err.println("Mentor not found " + skillMentorException.getMessage());
-            // LOG LEVELS
-            // DEBUG, INFO, WARN, ERROR
-            // env - dev, prod
+
             log.warn("Mentor not found with id: {} to fetch", id, skillMentorException);
             throw new SkillMentorException("Mentor Not found", HttpStatus.NOT_FOUND);
+
         } catch (Exception exception) {
+
             log.error("Error getting mentor", exception);
             throw new SkillMentorException("Failed to get mentor", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-
+    @Cacheable(value = "mentor", key = "#mentorId")
     public Mentor getMentorByMentorId(String mentorId) {
-        return mentorRepository.findByMentorId(mentorId).orElseThrow(() ->
+        return mentorRepository.findByMentorId(mentorId)
+                .orElseThrow(() ->
                         new SkillMentorException("Mentor not found", HttpStatus.NOT_FOUND));
     }
 
-
+    @CacheEvict(value = {"mentors", "mentor"}, allEntries = true)
     public Mentor updateMentorById(Long id, Mentor updatedMentor) {
         try {
+
             Mentor mentor = mentorRepository.findById(id).orElseThrow(
                     () -> new SkillMentorException("Mentor Not found", HttpStatus.NOT_FOUND)
             );
+
             modelMapper.map(updatedMentor, mentor);
+
             return mentorRepository.save(mentor);
+
         } catch (SkillMentorException skillMentorException) {
+
             log.warn("Mentor not found with id: {} to update", id, skillMentorException);
             throw new SkillMentorException("Mentor Not found", HttpStatus.NOT_FOUND);
+
         } catch (Exception exception) {
+
             log.error("Error updating mentor", exception);
             throw new SkillMentorException("Failed to update mentor", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
+    @CacheEvict(value = {"mentors", "mentor"}, allEntries = true)
     public void deleteMentor(Long id) {
         try {
+
             mentorRepository.deleteById(id);
+
         } catch (Exception exception) {
+
             log.error("Failed to delete mentor with id {}", id, exception);
             throw new SkillMentorException("Failed to delete mentor", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 }
-

@@ -7,6 +7,8 @@ import com.stemlink.skillmentor.security.UserPrincipal;
 import com.stemlink.skillmentor.services.SessionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -28,13 +30,11 @@ public class SessionController extends AbstractController {
     // Admin only
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<SessionResponseDTO>> getAllSessions() {
+    public ResponseEntity<Page<SessionResponseDTO>> getAllSessions(Pageable pageable) {
 
-        List<Session> sessions = sessionService.getAllSessions();
+        Page<Session> sessions = sessionService.getAllSessions(pageable);
 
-        List<SessionResponseDTO> response = sessions.stream()
-                .map(this::toSessionResponseDTO)
-                .collect(Collectors.toList());
+        Page<SessionResponseDTO> response = sessions.map(this::toSessionResponseDTO);
 
         return sendOkResponse(response);
     }
